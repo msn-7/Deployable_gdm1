@@ -1,0 +1,62 @@
+[
+    {
+        "name": "OGTT",
+        "value": 0.21910006032256554
+    },
+    {
+        "name": "BMI",
+        "value": 0.16946732739749623
+    },
+    {
+        "name": "Dia_BP",
+        "value": 0.1352877676502987
+    },
+    {
+        "name": "Prediabetes",
+        "value": 0.1197006776558363
+    },
+    {
+        "name": "PCOS",
+        "value": 0.07538958385991688
+    },
+    {
+        "name": "Gestation_in_previous_Pregnancy",
+        "value": 0.07449903267832289
+    },
+    {
+        "name": "HDL",
+        "value": 0.06792208374327853
+    },
+    {
+        "name": "Sys_BP",
+        "value": 0.05766197658238457
+    },
+    {
+        "name": "Hemoglobin",
+        "value": 0.0342648999495852
+    },
+    {
+        "name": "Age",
+        "value": 0.01994141247546994
+    },
+    {
+        "name": "Family_History",
+        "value": 0.006373153497437258
+    },
+    {
+        "name": "No_of_Pregnancy",
+        "value": 0.0056621874359310395
+    },
+    {
+        "name": "Sedentary_Lifestyle",
+        "value": 0.005399739511998216
+    },
+    {
+        "name": "Large_Child_or_Birth_Default",
+        "value": 0.005107846155204356
+    },
+    {
+        "name": "unexplained_prenetal_loss",
+        "value": 0.004222251084274323
+    }
+]

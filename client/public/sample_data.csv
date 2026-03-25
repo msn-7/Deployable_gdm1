@@ -1,0 +1,6 @@
+Age,No_of_Pregnancy,Gestation_in_previous_Pregnancy,BMI,HDL,Family_History,unexplained_prenetal_loss,Large_Child_or_Birth_Default,PCOS,Sys_BP,Dia_BP,OGTT,Hemoglobin,Sedentary_Lifestyle,Prediabetes
+30,2,0,25.5,50,0,0,0,0,120,80,140,12.5,0,0
+35,3,1,32.0,45,1,0,1,1,135,85,160,11.0,1,1
+28,1,0,22.0,60,0,0,0,0,115,75,130,13.2,0,0
+40,5,1,35.5,40,1,1,1,0,140,90,180,12.0,1,1
+32,2,0,28.7,55,1,0,0,1,128,82,150,11.8,0,0
