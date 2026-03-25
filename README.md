@@ -170,15 +170,3 @@ npm run dev
 
 ---
 
-## 🎨 Architecture Diagram Generation Prompt
-
-To visualize the system architecture using AI image generators (like ChatGPT, Gemini, or Midjourney), use the following prompt:
-
-> **"Create a modern, high-tech system architecture diagram for a Gestational Diabetes Prediction System. The diagram should feature four distinct, interconnected blocks arranged in a logical flow from left to right:**
->
-> 1.  **User Interface**: A sleek web frontend block labeled 'React.js + Vite', representing the patient interacting with a form.
-> 2.  **API Server**: A central backend block labeled 'Python Flask', acting as the bridge.
-> 3.  **ML Model**: An intelligence block labeled 'Scikit-Learn Model', receiving data from the API.
-> 4.  **Database**: A storage block labeled 'Database', connected to the API.
->
-> **Style**: Use a clean, professional medical-tech aesthetic with a color palette of soft blues, greens, and white. Connect the blocks with directional arrows showing the data flow: User -> UI -> API -> Model. The background should be clean and white or light grey. Avoid clutter and keep it minimalist."**
