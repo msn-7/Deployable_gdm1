@@ -202,8 +202,53 @@ def generate_pdf_report(data, result, doctor_notes="", prescribed_meds=""):
     return filepath
 
 def send_email_notification(to_email, subject, body, attachment_path=None):
+    import urllib.request, urllib.error, json, base64
+
+    brevo_key = os.environ.get("BREVO_API_KEY")
+
+    # ── Brevo API (works on Render free tier — uses HTTPS, no SMTP) ──────────
+    if brevo_key:
+        sender_email = os.environ.get("EMAIL_USER", "gdmapp@gmail.com")
+        payload = {
+            "sender": {"name": "GDM App", "email": sender_email},
+            "to": [{"email": to_email}],
+            "subject": subject,
+            "htmlContent": body
+        }
+        if attachment_path and os.path.exists(attachment_path):
+            with open(attachment_path, "rb") as f:
+                content = base64.b64encode(f.read()).decode()
+            payload["attachment"] = [{
+                "name": os.path.basename(attachment_path),
+                "content": content
+            }]
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.brevo.com/v3/smtp/email",
+            data=data,
+            headers={
+                "accept": "application/json",
+                "api-key": brevo_key,
+                "content-type": "application/json"
+            },
+            method="POST"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                print(f"Email sent via Brevo to {to_email} (status {resp.status})")
+                return True, None
+        except urllib.error.HTTPError as e:
+            error = f"Brevo API error {e.code}: {e.read().decode()}"
+            print(error)
+            return False, error
+        except Exception as e:
+            error = f"Brevo request failed: {e}"
+            print(error)
+            return False, error
+
+    # ── Fallback: Gmail SMTP (only works locally, NOT on Render free tier) ───
     if not EMAIL_USER or not EMAIL_PASS:
-        msg = "Email not configured: EMAIL_USER or EMAIL_PASS environment variables are not set."
+        msg = "Email not configured: set BREVO_API_KEY (cloud) or EMAIL_USER+EMAIL_PASS (local)."
         print(msg)
         return False, msg
 
@@ -213,36 +258,27 @@ def send_email_notification(to_email, subject, body, attachment_path=None):
         msg['To'] = to_email
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'html'))
-        
         if attachment_path and os.path.exists(attachment_path):
             with open(attachment_path, "rb") as f:
                 attach = MIMEApplication(f.read(), _subtype="pdf")
                 attach.add_header('Content-Disposition', 'attachment', filename=os.path.basename(attachment_path))
                 msg.attach(attach)
-
-        # Use a timeout to avoid hanging forever
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
         server.ehlo()
         server.starttls()
         server.ehlo()
-        # Strip spaces from App Password (Gmail App Passwords are 16 chars, spaces are just for display)
         app_pass = (EMAIL_PASS or "").replace(" ", "")
         server.login(EMAIL_USER or "", app_pass)
         server.send_message(msg)
         server.quit()
-        print(f"Email sent successfully to {to_email}")
+        print(f"Email sent via SMTP to {to_email}")
         return True, None
     except smtplib.SMTPAuthenticationError:
         error = (
             "SMTP Authentication failed. Your Gmail App Password may be invalid or expired. "
-            "Please go to Google Account → Security → 2-Step Verification → App passwords "
-            "and generate a new App Password, then update EMAIL_PASS in server/.env."
+            "Go to Google Account → Security → 2-Step Verification → App passwords."
         )
         print(f"Email auth error: {error}")
-        return False, error
-    except smtplib.SMTPConnectError as e:
-        error = f"Could not connect to SMTP server ({SMTP_SERVER}:{SMTP_PORT}): {e}"
-        print(error)
         return False, error
     except Exception as e:
         error = f"Failed to send email: {e}"
