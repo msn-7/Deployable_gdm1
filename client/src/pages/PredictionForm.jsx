@@ -21,7 +21,6 @@ const PredictionForm = ({ user }) => {
         OGTT: '',
         Hemoglobin: '',
         Sedentary_Lifestyle: '0',
-        Sedentary_Lifestyle: '0',
         Prediabetes: '0',
         patient_name: '',
         patient_email: ''

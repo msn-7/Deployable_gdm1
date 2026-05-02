@@ -1,4 +1,7 @@
-export const API_URL = '/api';
+// In development, Vite proxies /api → http://localhost:5000
+// In production (Vercel), set VITE_API_URL to your Render backend URL
+// e.g. https://gdm-backend.onrender.com/api
+export const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const registerUser = async (userData) => {
     try {
@@ -83,4 +86,17 @@ export const getDashboardData = async () => {
         console.error('Error fetching dashboard data:', error);
         throw error;
     }
+};
+
+export const sendReport = async (payload) => {
+    const response = await fetch(`${API_URL}/send-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.error || 'Failed to send report');
+    }
+    return data;
 };

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, CheckCircle, Info, Send, CheckSquare } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { sendReport } from '../services/api';
 
 const ResultPage = () => {
     const location = useLocation();
@@ -19,7 +20,6 @@ const ResultPage = () => {
 
     const { risk_level, probability, advice, color_class, top_features } = result;
 
-    // Format data for chart
     const chartData = top_features.map(f => ({
         name: f.feature,
         importance: (f.importance * 100).toFixed(1)
@@ -28,27 +28,26 @@ const ResultPage = () => {
     const [doctorNotes, setDoctorNotes] = React.useState('');
     const [prescribedMeds, setPrescribedMeds] = React.useState(result ? result.medications.join('\n') : '');
     const [sending, setSending] = React.useState(false);
-    const [sentStatus, setSentStatus] = React.useState(null);
+    const [sentStatus, setSentStatus] = React.useState(null); // null | 'success' | 'error'
+    const [errorMessage, setErrorMessage] = React.useState('');
 
     const handleSendReport = async () => {
         setSending(true);
         setSentStatus(null);
+        setErrorMessage('');
         try {
-            await fetch('/api/send-report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prediction_id: result.prediction_id,
-                    patient_email: result.patient_email,
-                    doctor_notes: doctorNotes,
-                    prescribed_meds: prescribedMeds,
-                    report_data: formData, // Passing original input data for PDF context
-                    result_context: result
-                })
+            await sendReport({
+                prediction_id: result.prediction_id,
+                patient_email: result.patient_email,
+                doctor_notes: doctorNotes,
+                prescribed_meds: prescribedMeds,
+                report_data: formData,
+                result_context: result
             });
             setSentStatus('success');
         } catch (error) {
-            console.error("Error sending report", error);
+            console.error("Error sending report:", error);
+            setErrorMessage(error.message || 'Failed to send report. Please check server logs.');
             setSentStatus('error');
         } finally {
             setSending(false);
@@ -112,7 +111,7 @@ const ResultPage = () => {
                     <div className="border-t pt-8 mt-8">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                             <span className="bg-blue-600 text-white p-2 rounded mr-3 text-sm">DOCTOR USE ONLY</span>
-                            Doctor's Review & Approval
+                            Doctor's Review &amp; Approval
                         </h2>
 
                         <div className="space-y-6">
@@ -140,20 +139,40 @@ const ResultPage = () => {
                             <div className="flex items-center justify-between bg-blue-50 p-4 rounded-lg">
                                 <div>
                                     <p className="text-sm font-medium text-gray-900">Send Report to Patient</p>
-                                    <p className="text-sm text-gray-500">Will send PDF report to: <strong>{result.patient_email}</strong></p>
+                                    <p className="text-sm text-gray-500">
+                                        Will send PDF report to: <strong>{result.patient_email || 'No email provided'}</strong>
+                                    </p>
                                 </div>
                                 <button
                                     onClick={handleSendReport}
-                                    disabled={sending || sentStatus === 'success'}
-                                    className={`px-6 py-3 rounded-lg font-bold text-white transition shadow-md flex items-center
-                                        ${sentStatus === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                    disabled={sending || sentStatus === 'success' || !result.patient_email}
+                                    className={`px-6 py-3 rounded-lg font-bold text-white transition shadow-md flex items-center gap-2
+                                        ${sentStatus === 'success'
+                                            ? 'bg-green-600 cursor-default'
+                                            : !result.patient_email
+                                                ? 'bg-gray-400 cursor-not-allowed'
+                                                : 'bg-blue-600 hover:bg-blue-700'}`}
                                 >
-                                    {sending ? 'Sending...' : sentStatus === 'success' ? 'Report Sent!' : 'Approve & Send Report'}
+                                    {sentStatus === 'success'
+                                        ? <><CheckSquare size={18} /> Report Sent!</>
+                                        : sending
+                                            ? 'Sending...'
+                                            : <><Send size={18} /> Approve &amp; Send Report</>
+                                    }
                                 </button>
                             </div>
 
                             {sentStatus === 'error' && (
-                                <p className="text-red-600 text-sm mt-2 text-center">Failed to send report. Please check server logs.</p>
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                    <p className="text-red-700 text-sm font-semibold">❌ Failed to send report</p>
+                                    <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
+                                </div>
+                            )}
+
+                            {sentStatus === 'success' && (
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <p className="text-green-700 text-sm font-semibold">✅ Report sent successfully to {result.patient_email}</p>
+                                </div>
                             )}
                         </div>
                     </div>
